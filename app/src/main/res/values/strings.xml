@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DataBindingExample</string>
+    <string name="action_settings">Settings</string>
+    <string name="place_image">Place Image</string>
+</resources>
