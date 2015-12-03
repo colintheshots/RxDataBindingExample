@@ -22,11 +22,19 @@ public class PlacesDetail {
     }
 
     public String getName() {
-        return result.getName();
+        if (result != null) {
+            return result.getName();
+        } else {
+            return "";
+        }
     }
 
     public String getPhotoUrl() {
-        return result.getPhotoUrl();
+        if (result != null) {
+            return result.getPhotoUrl();
+        } else {
+            return "";
+        }
     }
 
     public class Result {

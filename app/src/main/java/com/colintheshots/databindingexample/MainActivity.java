@@ -8,6 +8,7 @@ import com.colintheshots.databindingexample.net.GooglePlacesClient;
 import com.jakewharton.rxbinding.widget.RxTextView;
 import com.jakewharton.rxbinding.widget.TextViewTextChangeEvent;
 import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Protocol;
 import com.squareup.okhttp.logging.HttpLoggingInterceptor;
 
 import android.databinding.DataBindingUtil;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import retrofit.GsonConverterFactory;
@@ -27,6 +29,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,6 +55,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (mGooglePlacesClient == null) {
             OkHttpClient client = new OkHttpClient();
+
+            // workaround for SPDY HTTP/2 and OkHTTP
+            client.setProtocols(Collections.singletonList(Protocol.HTTP_1_1));
+
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             client.interceptors().add(interceptor);
@@ -74,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
         mEditTextSubscription =
                 RxTextView.textChangeEvents(mainBinding.editText1)
+                        .filter(event -> !event.text().toString().equals(""))
                         .doOnNext(textViewTextChangeEvent -> mPlacesAdapter.clear())
                         .debounce(DEBOUNCE_IN_MS, TimeUnit.MILLISECONDS)
                         .map(editText1 -> editText1.text().toString())
@@ -87,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                             return Observable.empty();
                         })
-                        .take(2)
                         .flatMap(result -> Observable.from(result.predictions))
                         .flatMap(prediction -> {
                             try {
@@ -100,9 +107,17 @@ public class MainActivity extends AppCompatActivity {
                             }
                             return Observable.empty();
                         })
+                        .concatWith(Observable.never())
+                        .onErrorResumeNext(Observable.empty())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(result -> {
                             mPlacesAdapter.addItem(result);
                         }, Throwable::printStackTrace);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mEditTextSubscription.unsubscribe();
+        super.onDestroy();
     }
 }
