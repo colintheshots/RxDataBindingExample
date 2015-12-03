@@ -37,6 +37,14 @@ public class PlacesDetail {
         }
     }
 
+    public String getFormattedAddress() {
+        if (result != null) {
+            return result.getFormatted_address();
+        } else {
+            return "";
+        }
+    }
+
     public class Result {
 
         public class Photo {
@@ -49,6 +57,9 @@ public class PlacesDetail {
 
         @Expose
         List<Photo> photos;
+
+        @Expose
+        String formatted_address;
 
         public String getName() {
             return name;
@@ -68,6 +79,10 @@ public class PlacesDetail {
                 Log.d("PlacesDetail", "Photo Url was null in " + getName());
                 return "";
             }
+        }
+
+        public String getFormatted_address() {
+            return formatted_address;
         }
     }
 }

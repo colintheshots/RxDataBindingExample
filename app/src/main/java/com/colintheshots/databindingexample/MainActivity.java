@@ -108,7 +108,13 @@ public class MainActivity extends AppCompatActivity {
                             return Observable.empty();
                         })
                         .concatWith(Observable.never())
-                        .onErrorResumeNext(Observable.empty())
+                        .onErrorResumeNext(throwable -> {
+                            // This prevents errors from causing
+                            // the observable to end.
+
+                            // Put a handler here if you do this
+                            return Observable.empty();
+                        })
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(result -> {
                             mPlacesAdapter.addItem(result);
